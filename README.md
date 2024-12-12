@@ -11,4 +11,4 @@ Student Info
 
 * Student Name: Vo Hong Quang
 * Student ID: 22BI13386
-* Student Group ID: Not-for-now
+* Student Group ID: 10
