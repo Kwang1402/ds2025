@@ -1,0 +1,5 @@
+message_broker:
+  framework: redis
+  connection:
+    host: localhost
+    port: 6379
