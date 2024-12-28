@@ -26,7 +26,7 @@ MYSQL_SETTINGS = {
     "host": parsed_url.hostname,
     "port": parsed_url.port,
     "user": parsed_url.username,
-    "passwd": "Anhquang275@"
+    "passwd": parsed_url.password
 }
 
 def convert_datetime_to_str(my_dict):
