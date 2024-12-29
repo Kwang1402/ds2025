@@ -87,6 +87,31 @@ docs = ["Sphinx", "furo"]
 test = ["objgraph", "psutil"]
 
 [[package]]
+name = "mysql-replication"
+version = "1.0.9"
+description = "Pure Python Implementation of MySQL replication protocol build on top of PyMYSQL."
+optional = false
+python-versions = "*"
+files = [
+    {file = "mysql_replication-1.0.9.tar.gz", hash = "sha256:eb5603256cc18892bbccce30b6e7c800ec8f6bfe4e44add79f9b88d222322064"},
+]
+
+[package.dependencies]
+packaging = "*"
+pymysql = ">=1.1.0"
+
+[[package]]
+name = "packaging"
+version = "24.2"
+description = "Core utilities for Python packages"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "packaging-24.2-py3-none-any.whl", hash = "sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759"},
+    {file = "packaging-24.2.tar.gz", hash = "sha256:c228a6dc5e932d346bc5739379109d49e8853dd8223571c7c5b55260edc0b97f"},
+]
+
+[[package]]
 name = "pymysql"
 version = "1.1.1"
 description = "Pure Python MySQL Driver"
@@ -287,4 +312,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "f2d8b3b76958d237eea521032bc95f884743cabb97480a74765be604410dfa5e"
+content-hash = "ec4ee38ae2ac0f2c2b79842aad86934e7a539df8dfb3de72bee6669cb78d6236"

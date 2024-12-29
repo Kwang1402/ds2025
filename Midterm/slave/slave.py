@@ -20,6 +20,7 @@ def execute_ddl_query(query, session):
     try:
         session.execute(text(query))
         session.commit()
+        print(f"Executed DDL query: {query}")
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Error executing DDL query: {e}")
@@ -27,9 +28,12 @@ def execute_ddl_query(query, session):
 
 def insert(table, data, session):
     try:
-        table_class = Table(table, session.metadata, autoload_with=session.bind)
-        session.execute(table_class.insert().values(data))
+        columns = ", ".join(data.keys())
+        placeholders = ", ".join([f":{key}" for key in data.keys()])
+        query = f"INSERT INTO {table} ({columns}) VALUES ({placeholders})"
+        session.execute(text(query), data)
         session.commit()
+        print(f"Inserted data into {table}: {data}")
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Error inserting data into {table}: {e}")
@@ -37,13 +41,12 @@ def insert(table, data, session):
 
 def update(table, data, session):
     try:
-        table_class = Table(table, session.metadata, autoload_with=session.bind)
-        session.execute(
-            table_class.update()
-            .where(table_class.c.id == data["before"]["id"])
-            .values(data["after"])
-        )
+        set_clause = ", ".join([f"{key} = :{key}" for key in data["after"].keys()])
+        query = f"UPDATE {table} SET {set_clause} WHERE id = :id"
+        params = {**data["after"], "id": data["before"]["id"]}
+        session.execute(text(query), params)
         session.commit()
+        print(f"Updated data in {table}: {params}")
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Error updating data in {table}: {e}")
@@ -51,9 +54,10 @@ def update(table, data, session):
 
 def delete(table, data, session):
     try:
-        table_class = Table(table, session.metadata, autoload_with=session.bind)
-        session.execute(table_class.delete().where(table_class.c.id == data["id"]))
+        query = f"DELETE FROM {table} WHERE id = :id"
+        session.execute(text(query), {"id": data["id"]})
         session.commit()
+        print(f"Deleted data from {table} where id = {data['id']}")
     except SQLAlchemyError as e:
         session.rollback()
         print(f"Error deleting data from {table}: {e}")
@@ -68,7 +72,7 @@ def handle_message(message, session):
     }
 
     message_data = json.loads(message["data"])
-    query = message_data.get("query")
+    query = message_data.get("query").upper()
     table = message_data.get("table")
     data = message_data.get("data")
 
@@ -82,9 +86,9 @@ def handle_message(message, session):
 
 
 if __name__ == "__main__":
-    r = redis.Redis(**config["message_broker"]["connection"])
+    r = redis.Redis(**config["message_bus"]["connection"])
     pubsub = r.pubsub()
-    pubsub.subscribe(config["message_broker"]["subscriber"]["channel"])
+    pubsub.subscribe(config["message_bus"]["subscriber"]["channel"])
 
     session = get_mysql_connection()
 

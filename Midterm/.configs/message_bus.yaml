@@ -1,4 +1,4 @@
-message_broker:
+message_bus:
   framework: redis
   connection:
     host: localhost
