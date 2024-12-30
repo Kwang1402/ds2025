@@ -82,29 +82,33 @@
 \section{\bfseries Methodology}
 \fontsize{13}{16}\selectfont
 \subsection{System Architecture}
-The architecture for the system is based on the Master-Slave model. The system will include the following components:
+Our system consists of 5 components: Master Database, Master Server, Message Bus, Slave Server and Slave Database. User will interact with the Master Database to perform write operations. The modifications will be forwarded to Message Bus and a Slave Database will be created for storing a copy of the Master Database.
 
-\includegraphics[width=\textwidth]{distribute_system_architecture.png}
-
-\begin{itemize}
-    \item \textbf{Master Database:} 
-    \item \textbf{Binary Log:}
-    \item \textbf{Master Server:}
-    \item \textbf{Redis:}
-    \item \textbf{Slave Server:}
-    \item \textbf{Slave Database:}
-\end{itemize}
-
-Both Master server and all Slave servers are assigned a unique identifier to avoid conflicts of operation between servers.
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{distribute_system_architecture.png}
+    \caption{System Architecture}
+    \label{fig:system_architecture}
+\end{figure}
 
 \subsection{Role Assignments}
-Each kind of server has a defined role for maintain the system:
-\begin{itemize}
-    \item \textbf{Master Server:} Master server is responsible for all data changes, including INSERT, UPDATE, DELETE, etc.. It logs every transactions for storing data in Slave servers.
-    \item \textbf{Slave Server:} Slave server is responsible for managing copies of Master server. Slave servers are also enabled for read operations without interaction with the Master server. 
-\end{itemize}
 
+Each component of the system plays an important role in the system:
 
+\subsubsection{Master Database}
+The Master Database is the system source database. It will handle all write operations and create a binary log whenever there is a modification to the database.
+
+\subsubsection{Master Server}
+The Master Server can access binary logs created by the Master Database. It will extract the modifications of the database from the binary logs. The Master Server publishes to a Redis Pub/Sub channel for sending modifications messages.
+
+\subsubsection{Message Bus}
+The Message Bus is used for connecting messages between the Master Server and the Slave Server. It act as a layer for multiple Slave Server interact with the Master Server at the same time. We use Redis Pub/Sub for creating channels for transmitting data between Servers.
+
+\subsubsection{Slave Server}
+The Slave Server subscribe to a Redis Pub/Sub channel for receiving modifications messages. It will then update and apply to the Slave Database to create a copy of the Master Database.
+
+\subsubsection{Slave Database}
+The Slave Database is a copy of the Master Database enabled with read operations. Each Slave Database contains a copy of the Master Database after each modification made to the source database.
 
 \newpage
 \end{document}
