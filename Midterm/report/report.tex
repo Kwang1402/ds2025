@@ -111,4 +111,44 @@ The Slave Server subscribe to a Redis Pub/Sub channel for receiving modification
 The Slave Database is a copy of the Master Database enabled with read operations. Each Slave Database contains a copy of the Master Database after each modification made to the source database.
 
 \newpage
+\section{\bfseries Implementation}
+\fontsize{13}{16}\selectfont
+\subsection{Configuration}
+In order to build the system, we have to enable MySQL binary logging to capture database changes. We need to configure MySQL:
+
+\subsubsection{Edit MySQL config file:}
+\begin{verbatim}
+    sudo nano /etc/mysql/my.cnf
+\end{verbatim}
+
+\subsubsection{Enable logging:}
+\begin{verbatim}
+    [mysqld]
+    log_bin=mysql-bin
+    server_id=1
+    binlog_format=ROW
+\end{verbatim}
+
+\subsubsection{Add options to log table name}
+\begin{verbatim}
+    binlog_row_image=FULL
+    binlog_row_metadata=FULL
+\end{verbatim}
+
+With the provided setting, MySQL can access Binary Log. The data modifications will be logged by column name.
+
+\subsection{Modules}
+We take advantages of the following modules for building and managing the MySQL Replication system:
+\subsubsection{SQLAlchemy}
+SQLAlchemy is a Python SQL toolkit used for handle SQL queries. We use this library for create operations with database using Python.
+
+\subsubsection{pymsqlreplication}
+pymysqlreplication is a Python module used for reading binary logs. It will extract database changes for creating Slave databases. 
+
+\subsubsection{Redis pub/sub}
+Rerdis pub/sub act as a message bus to publish and subscribe to events. The Master Server will publish to Redis and the Slave server will subscribe to it also.
+
+\newpage
+\section{\bfseries Result}
+\fontsize{13}{16}\selectfont
 \end{document}
