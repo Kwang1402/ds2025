@@ -5,11 +5,6 @@
 ## Installation
 
 -   Clone the repository
--   Navigate to the `Midterm` directory
-    
-    ```bash
-    cd Midterm
-    ```
     
 -   Set up configuration
 
@@ -41,14 +36,14 @@
     binlog_row_image=FULL
     binlog_row_metadata=FULL
     ```
-
--   Config your connections in `.configs`:
-
-    Master database configs: `database.yaml`
-    Slave database configs: `slave_database.yaml`
-    Message bus configs: `message_bus.yaml`
     
 ## Development requirements
+
+Navigate to the `Midterm` directory
+    
+    ```bash
+    cd Midterm
+    ```
 
 This repository uses `poetry` (as shown by the poetry.lock file).
 
@@ -71,6 +66,14 @@ This repository uses `poetry` (as shown by the poetry.lock file).
     poetry install
     ```
 
+-   Config your connections in `.configs`:
+
+    Master database configs: `database.yaml`
+
+    Slave database configs: `slave_database.yaml`
+
+    Message bus configs: `message_bus.yaml`
+    
 # Running the Master
 
 -   To run the `master`, use the make command:
