@@ -6,6 +6,15 @@
 \usepackage{lmodern} 
 \usepackage{parskip}
 \usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\lstdefinelanguage{ini}{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    captionpos=b,
+}
 
 \renewcommand\thesection{\arabic{section}}
 \renewcommand\thesubsection{\thesection.\arabic{subsection}}
@@ -59,7 +68,7 @@
 \fontsize{13}{16}\selectfont
 
 \subsection{Context}
-\hspace*{1em}A Distributed database is a database shared by multiple servers or computers instead of limited to one system. Inside a Distributed database system, each component contains its own database connected with other databases. A Distributed database has higher benefits than a centralized database system as it provides faster data processing between sites. It also ensures that the system can still execute if one or more sites fail to operate.
+\hspace*{1em}A Distributed database is a database shared by multiple servers or computers, instead of limited to one system. Inside a Distributed database system, each component contains its own database connected with other databases. A Distributed database has higher benefits than a centralized database system as it provides faster data processing between sites. It also ensures that the system can still execute if one or more sites fail to operate.
 
 \hspace*{1em}One of the most important parts of a Distributed database is Replication. Replication is a method used for storing data. In the Replication approach, systems maintain copies of data stored in multiple sites instead of only one main copy in the main site. With Replication, data can be accessed at different sites in parallel. The system is also ensured to continue to operate even if a server fails as there are copies of the same data on different other servers. 
 
@@ -105,7 +114,7 @@ The Master Server can access binary logs created by the Master Database. It will
 The Message Bus is used for connecting messages between the Master Server and the Slave Server. It act as a layer for multiple Slave Server interact with the Master Server at the same time. We use Redis Pub/Sub for creating channels for transmitting data between Servers.
 
 \subsubsection{Slave Server}
-The Slave Server subscribe to a Redis Pub/Sub channel for receiving modifications messages. It will then update and apply to the Slave Database to create a copy of the Master Database.
+The Slave Server subscribe to a Redis Pub/Sub channel for receiving modifications messages. It will then update and apply to the Slave Database to create copies of the Master Database.
 
 \subsubsection{Slave Database}
 The Slave Database is a copy of the Master Database enabled with read operations. Each Slave Database contains a copy of the Master Database after each modification made to the source database.
@@ -116,39 +125,105 @@ The Slave Database is a copy of the Master Database enabled with read operations
 \subsection{Configuration}
 In order to build the system, we have to enable MySQL binary logging to capture database changes. We need to configure MySQL:
 
-\subsubsection{Edit MySQL config file:}
-\begin{verbatim}
-    sudo nano /etc/mysql/my.cnf
-\end{verbatim}
+\subsubsection{Edit MySQL Configuration File}
+To edit the MySQL configuration file, use the following command:
+\begin{lstlisting}[language=ini, numbers=none]
+sudo nano /etc/mysql/my.cnf
+\end{lstlisting}
 
-\subsubsection{Enable logging:}
-\begin{verbatim}
-    [mysqld]
-    log_bin=mysql-bin
-    server_id=1
-    binlog_format=ROW
-\end{verbatim}
+\subsubsection{Enable Logging}
+Add the following configuration to enable binary logging in the `[mysqld]` section:
+\begin{lstlisting}[language=ini, numbers=none]
+[mysqld]
+log_bin = mysql-bin
+server_id = 1
+binlog_format = ROW
+\end{lstlisting}
 
-\subsubsection{Add options to log table name}
-\begin{verbatim}
-    binlog_row_image=FULL
-    binlog_row_metadata=FULL
-\end{verbatim}
+\subsubsection{Limit Logs to a Specific Database}
+Add the following configuration to to limit logs a specific database (for example `master`):
+\begin{lstlisting}[language=ini, numbers=none]
+binlog-do-db=master
+\end{lstlisting}
 
-With the provided setting, MySQL can access Binary Log. The data modifications will be logged by column name.
+\subsubsection{Add Options to Log Table Names}
+To log column names and metadata, add the following options to the `[mysqld]` section:
+\begin{lstlisting}[language=ini, numbers=none]
+binlog_row_image = FULL
+binlog_row_metadata = FULL
+\end{lstlisting}
+
+With these settings, MySQL can access the Binary Log. All data modifications will be logged, including column names and metadata.
+
 
 \subsection{Modules}
 We take advantages of the following modules for building and managing the MySQL Replication system:
 \subsubsection{SQLAlchemy}
-SQLAlchemy is a Python SQL toolkit used for handle SQL queries. We use this library for create operations with database using Python.
+SQLAlchemy is a Python SQL toolkit used to handle SQL queries. We use this library for creating operations with the database using Python.
 
 \subsubsection{pymsqlreplication}
 pymysqlreplication is a Python module used for reading binary logs. It will extract database changes for creating Slave databases. 
 
-\subsubsection{Redis pub/sub}
-Rerdis pub/sub act as a message bus to publish and subscribe to events. The Master Server will publish to Redis and the Slave server will subscribe to it also.
+\subsubsection{Redis Pub/Sub}
+Redis pub/sub acts as a message bus to publish and subscribe to events. The Master Server will publish to Redis and the Slave server will subscribe to it also.
 
+\setcounter{secnumdepth}{3}
 \newpage
 \section{\bfseries Result}
 \fontsize{13}{16}\selectfont
+
+\subsection{Functionality Tests}
+Based on the initial objectives specified, we conducted a detailed test on all functions of the system to evaluate usability and make sure they meet expectations.
+\vspace{1\baselineskip}
+\\
+For Data Definition Language Testing, these functionalities were tested:
+\subsubsection{Testing CREATE TABLE replication }
+We tested executing command on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"CREATE TABLE test_table" 
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+A table 'test\_table' was created accordingly in the Slave Database
+
+\subsubsection{Testing DROP TABLE replication }
+We tested executing on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"DROP TABLE test_table;"
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+The table 'test\_table' was dropped respectively on the Slave Database.
+\vspace{1\baselineskip}
+\\
+For Data Modification Language Testing, these functionalities were tested:
+\subsubsection{Testing INSERT replication }
+We tested executing on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"INSERT INTO test_table (id, name) VALUES (1, 'Alice');"
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+The item with values (1, 'Alice') was inserted in the Slave Database.
+
+\subsubsection{Testing UPDATE replication }
+We tested executing on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"UPDATE test_table SET name = 'Bob' WHERE id = 1;"
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+The item with values (1, 'Alice') was updated into (1, 'Bob') in the Slave Database.
+
+\subsubsection{Testing DELETE replication }
+We tested executing on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"DELETE FROM test_table WHERE id = 1;"
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+The item with id = 1 was deleted in the Slave Database.
+
+\subsection{Conclusion}
+The implementation of the MySQL Master-Slave Replication system successfully achieved the objectives at the beginning of the project. The system is able to replicate data modifications, including Data Definition Language and Data Modification Language operations, from the Master Database to the Slave Database.
 \end{document}
