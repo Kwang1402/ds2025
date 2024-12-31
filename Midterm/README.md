@@ -24,6 +24,7 @@
     ```
 
     Limit Logs to a Specific Database
+    
     Add the following configuration to to limit logs a specific database (for example `master`)
 
     ```bash
