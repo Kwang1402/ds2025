@@ -15,7 +15,7 @@ def get_mysql_connection():
     return session
 
 
-# Execute DDL queries: (e.g., CREATE, ALTER, DROP)
+# Execute DDL queries: (e.g., CREATE, DROP)
 def execute_ddl_query(query, session):
     try:
         session.execute(text(query))
