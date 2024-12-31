@@ -41,7 +41,7 @@
 ## Development requirements
 
 Navigate to the `Midterm` directory
-    
+
     ```bash
     cd Midterm
     ```
