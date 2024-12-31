@@ -1,0 +1,229 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\usepackage[utf8]{vietnam}
+\usepackage[english]{babel}
+\usepackage{lmodern} 
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\lstdefinelanguage{ini}{
+    basicstyle=\ttfamily\small,
+    backgroundcolor=\color{gray!10},
+    frame=single,
+    breaklines=true,
+    captionpos=b,
+}
+
+\renewcommand\thesection{\arabic{section}}
+\renewcommand\thesubsection{\thesection.\arabic{subsection}}
+\renewcommand\thesubsubsection{\thesubsection.\arabic{subsubsection}}
+
+\begin{document}
+\thispagestyle{empty}
+
+\begin{center}
+    \setlength{\fboxsep}{0pt}
+    \setlength{\fboxrule}{0pt}
+    \fbox{
+        \begin{minipage}{\textwidth}
+            \begin{minipage}{0.3\textwidth}
+                \includegraphics[width=\textwidth]{usth_logo.png}
+            \end{minipage}
+            \hfill
+            \begin{minipage}{0.65\textwidth}
+                \raggedright
+                \textbf{\large University of Science and Technology of Hanoi}
+            \end{minipage}
+        \end{minipage}
+    }
+    \vspace{1cm}
+    \\
+    \textbf{\Large Distributed Systems} \\
+    \textbf{\large Midterm Report} \\
+    \vspace{1cm}
+    \rule{\textwidth}{0.5pt}
+    \vspace{0.5cm}
+    \\
+    \textbf{\large Distributed Database: Database Replication} \\
+    \vspace{0.5cm}
+    \rule{\textwidth}{0.5pt}
+    \vspace{1cm}
+    \\
+    Quang Vo Hong [\href{mailto:quangvh.22bi13386@usth.edu.vn}{quangvh.22bi13386@usth.edu.vn}] \\
+    Tam Nguyen Duc [\href{mailto:tamnd.22bi13400@usth.edu.vn}{tamnd.22bi13400@usth.edu.vn}] \\
+    Quang Le Anh [\href{mailto:quangla.22bi13380@usth.edu.vn}{quangla.22bi13380@usth.edu.vn}] \\
+    Nguyen Vu The Khoi [\href{mailto:nguyenvtk.22bi13344@usth.edu.vn}{nguyenvtk.22bi13344@usth.edu.vn}] \\
+    Quan Hong Chu [\href{mailto:quanch.22bi13367@usth.edu.vn}{quanch.22bi13367@usth.edu.vn}] \\
+    \vspace{2cm}
+    Hanoi, December 2024
+\end{center}
+
+\newpage
+\tableofcontents
+
+\newpage
+\section{\bfseries Introduction}
+\fontsize{13}{16}\selectfont
+
+\subsection{Context}
+\hspace*{1em}A Distributed database is a database shared by multiple servers or computers, instead of limited to one system. Inside a Distributed database system, each component contains its own database connected with other databases. A Distributed database has higher benefits than a centralized database system as it provides faster data processing between sites. It also ensures that the system can still execute if one or more sites fail to operate.
+
+\hspace*{1em}One of the most important parts of a Distributed database is Replication. Replication is a method used for storing data. In the Replication approach, systems maintain copies of data stored in multiple sites instead of only one main copy in the main site. With Replication, data can be accessed at different sites in parallel. The system is also ensured to continue to operate even if a server fails as there are copies of the same data on different other servers. 
+
+\hspace*{1em}Following the Replication method, MySQL Replication is a process that can automatically copy data from one MySQL server to other replica servers. The replica servers are proposed to be updated from the source’s data. 
+
+\hspace*{1em}The efficient synergy between MySQL and the Replication method is widely used for numerous purposes:
+\begin{itemize}
+    \item Balancing Loads: Queries can be redirected to replica servers in order to reduce the load on the source server.
+    \item System Availability: MySQL Replication can ensure the source system can still operate in case one or more servers fail to operate.
+    \item Backup Solution: Replica servers can be used for backups without interaction with the main database.
+    \item Disaster Recovery: A replica server can be quickly promoted to the primary server in the event of catastrophic failures.
+\end{itemize}
+
+\subsection{Objectives}
+\hspace*{1em}Our main objective is building a MySQL Master-Slave Replication system. The system can copy and update data from a primary database (Master database) to one or more secondary databases (Slave databases). The Master database will receive all write operations including inserts, updates, deletions, etc… After the Master database is modified, a copy of it will be kept in a Slave database. The copy process will be executed automatically whenever the master database is altered.
+
+\subsection{Outcomes}
+\hspace*{1em}A MySQL Master-Slave Replication system can automatically copy the Master database to a Slave database every time the Master database is modified.
+
+\section{\bfseries Methodology}
+\fontsize{13}{16}\selectfont
+\subsection{System Architecture}
+Our system consists of 5 components: Master Database, Master Server, Message Bus, Slave Server and Slave Database. User will interact with the Master Database to perform write operations. The modifications will be forwarded to Message Bus and a Slave Database will be created for storing a copy of the Master Database.
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=\textwidth]{distribute_system_architecture.png}
+    \caption{System Architecture}
+    \label{fig:system_architecture}
+\end{figure}
+
+\subsection{Role Assignments}
+
+Each component of the system plays an important role in the system:
+
+\subsubsection{Master Database}
+The Master Database is the system source database. It will handle all write operations and create a binary log whenever there is a modification to the database.
+
+\subsubsection{Master Server}
+The Master Server can access binary logs created by the Master Database. It will extract the modifications of the database from the binary logs. The Master Server publishes to a Redis Pub/Sub channel for sending modifications messages.
+
+\subsubsection{Message Bus}
+The Message Bus is used for connecting messages between the Master Server and the Slave Server. It act as a layer for multiple Slave Server interact with the Master Server at the same time. We use Redis Pub/Sub for creating channels for transmitting data between Servers.
+
+\subsubsection{Slave Server}
+The Slave Server subscribe to a Redis Pub/Sub channel for receiving modifications messages. It will then update and apply to the Slave Database to create copies of the Master Database.
+
+\subsubsection{Slave Database}
+The Slave Database is a copy of the Master Database enabled with read operations. Each Slave Database contains a copy of the Master Database after each modification made to the source database.
+
+\newpage
+\section{\bfseries Implementation}
+\fontsize{13}{16}\selectfont
+\subsection{Configuration}
+In order to build the system, we have to enable MySQL binary logging to capture database changes. We need to configure MySQL:
+
+\subsubsection{Edit MySQL Configuration File}
+To edit the MySQL configuration file, use the following command:
+\begin{lstlisting}[language=ini, numbers=none]
+sudo nano /etc/mysql/my.cnf
+\end{lstlisting}
+
+\subsubsection{Enable Logging}
+Add the following configuration to enable binary logging in the `[mysqld]` section:
+\begin{lstlisting}[language=ini, numbers=none]
+[mysqld]
+log_bin = mysql-bin
+server_id = 1
+binlog_format = ROW
+\end{lstlisting}
+
+\subsubsection{Limit Logs to a Specific Database}
+Add the following configuration to to limit logs a specific database (for example `master`):
+\begin{lstlisting}[language=ini, numbers=none]
+binlog-do-db=master
+\end{lstlisting}
+
+\subsubsection{Add Options to Log Table Names}
+To log column names and metadata, add the following options to the `[mysqld]` section:
+\begin{lstlisting}[language=ini, numbers=none]
+binlog_row_image = FULL
+binlog_row_metadata = FULL
+\end{lstlisting}
+
+With these settings, MySQL can access the Binary Log. All data modifications will be logged, including column names and metadata.
+
+
+\subsection{Modules}
+We take advantages of the following modules for building and managing the MySQL Replication system:
+\subsubsection{SQLAlchemy}
+SQLAlchemy is a Python SQL toolkit used to handle SQL queries. We use this library for creating operations with the database using Python.
+
+\subsubsection{pymsqlreplication}
+pymysqlreplication is a Python module used for reading binary logs. It will extract database changes for creating Slave databases. 
+
+\subsubsection{Redis Pub/Sub}
+Redis pub/sub acts as a message bus to publish and subscribe to events. The Master Server will publish to Redis and the Slave server will subscribe to it also.
+
+\setcounter{secnumdepth}{3}
+\newpage
+\section{\bfseries Result}
+\fontsize{13}{16}\selectfont
+
+\subsection{Functionality Tests}
+Based on the initial objectives specified, we conducted a detailed test on all functions of the system to evaluate usability and make sure they meet expectations.
+\vspace{1\baselineskip}
+\\
+For Data Definition Language Testing, these functionalities were tested:
+\subsubsection{Testing CREATE TABLE replication }
+We tested executing command on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"CREATE TABLE test_table" 
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+A table 'test\_table' was created accordingly in the Slave Database
+
+\subsubsection{Testing DROP TABLE replication }
+We tested executing on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"DROP TABLE test_table;"
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+The table 'test\_table' was dropped respectively on the Slave Database.
+\vspace{1\baselineskip}
+\\
+For Data Modification Language Testing, these functionalities were tested:
+\subsubsection{Testing INSERT replication }
+We tested executing on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"INSERT INTO test_table (id, name) VALUES (1, 'Alice');"
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+The item with values (1, 'Alice') was inserted in the Slave Database.
+
+\subsubsection{Testing UPDATE replication }
+We tested executing on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"UPDATE test_table SET name = 'Bob' WHERE id = 1;"
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+The item with values (1, 'Alice') was updated into (1, 'Bob') in the Slave Database.
+
+\subsubsection{Testing DELETE replication }
+We tested executing on the Master Database:
+\begin{lstlisting}[language=ini, numbers=none]
+"DELETE FROM test_table WHERE id = 1;"
+\end{lstlisting}
+Result: \textbf{Success}
+\\
+The item with id = 1 was deleted in the Slave Database.
+
+\subsection{Conclusion}
+The implementation of the MySQL Master-Slave Replication system successfully achieved the objectives at the beginning of the project. The system is able to replicate data modifications, including Data Definition Language and Data Modification Language operations, from the Master Database to the Slave Database.
+\end{document}

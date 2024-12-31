@@ -12,3 +12,10 @@ Student Info
 * Student Name: Vo Hong Quang
 * Student ID: 22BI13386
 * Student Group ID: 10
+
+
+Midterm Project
+=========================
+
+* Topic: Distributed database (MySQL Replica clone)
+* See the SETUP guide in the README.md of the `Midterm` directory
