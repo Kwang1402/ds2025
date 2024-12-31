@@ -40,9 +40,9 @@
     
 ## Development requirements
 
-Navigate to the `Midterm` directory
+-   Navigate to the `Midterm` directory
 
-    ```
+    ```bash
     cd Midterm
     ```
 
